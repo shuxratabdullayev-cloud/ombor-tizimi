@@ -1,26 +1,21 @@
-# Kassa Tizimi (5010) - Kassa Daftari Bilan
+# Ombor Tizimi (1010)
 
- Ushbu loyiha buxgalteriya o'quvchilari uchun **Kassa Kirim (KO-1)**, **Chiqim (KO-2)** orderlari va **Kassa Daftari** bilan ishlashni o'rgatuvchi web-ilovadir.
+Buxgalteriya o'quvchilari uchun **Materiallar Hisobi (7-mavzu)** bo'yicha amaliy mashg'ulot web-ilovasi.
 
- ## Xususiyatlar
- - 🟢 **5010 Schyot Mantig'i**: Kassa kirim va chiqim amallari avtomatik ravishda 5010 schyotiga bog'langan.
- - 📚 **Kassa Daftari**: Barcha operatsiyalar xronologik tartibda yig'iladi va qoldiq (balans) avtomatik hisoblanadi.
- - 🖨️ **Pechat (Print)**: 
-    - Orderlarni alohida blanka shaklida chop etish.
-    - Kassa daftari hisobotini A4 formatda chop etish.
- - 📱 **Moslashuvchan Dizayn**: Telefondan ham, kompyuterdan ham foydalanish qulay (Yashil mavzu).
- - 💾 **Mahalliy Xotira**: Ma'lumotlar brauzer xotirasida (LocalStorage) saqlanadi.
+## Xususiyatlar
+- 🌿 **Green Theme (Yashil Dizayn)**: Ko'zga yoqimli va sodda UI.
+- 📦 **Ombor Qoldig'i**: Materiallarning soni, o'rtacha narxi va jami qiymati.
+- 🖨️ **Professional Hisobot**: 1010-schyot aylanma qaydnomasini (Oborotka) A4 formatda chop etish.
+- 📝 **M-4 Shakli (Kirim)**: Mol yetkazib beruvchilardan (6010) material kirim qilish.
+- 📤 **M-11 Shakli (Chiqim)**: Ishlab chiqarishga (2010) material berish.
+- 🧮 **FIFO (First-In, First-Out)**: Material narxi "FIFO" (Birinchi kirgan - birinchi chiqadi) usulida hisoblanadi. Batch (partiya) bo'yicha hisob yuritiladi.
 
- ## Qanday ishlatiladi?
- 1. Ushbu repozitoriyni yuklab oling yoki `index.html` faylini oching.
- 2. **Hujjatlar** bo'limida kirim yoki chiqim orderlarini yarating.
- 3. **Kassa Daftari** bo'limiga o'tib, umumiy hisobot va qoldiqni ko'ring.
- 4. Kerakli hujjatlarni printer belgisini bosish orqali chop eting.
+## Qanday ishlatiladi?
+1. `index.html` faylini oching.
+2. **Kirim (M-4)** bo'limida yangi material qo'shing.
+3. **Ombor Qoldig'i** jadvalida "🖨️ Hisobotni Chop Etish" tugmasi orqali umumiy hisobot oling.
+4. Har bir hujjat tarixida "Chop etish" tugmasi orqali rasmiy blankalarni chiqaring.
 
- ## Texnologiyalar
- - HTML5
- - CSS3 (Responsive & Print Media Queries)
- - JavaScript (Vanilla)
-
- ## Muallif
- Ushbu loyiha o'quv maqsadida yaratildi.
+## Texnologiyalar
+- HTML5, CSS3, Vanilla JS
+- LocalStorage (Ma'lumotlar brauzerda saqlanadi)

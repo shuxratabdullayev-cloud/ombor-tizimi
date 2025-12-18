@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kassa Tizimi - 5010</title>
+    <title>Ombor Tizimi (FIFO)</title>
     <style>
         :root {
+            /* GREEN THEME VARIABLES */
             --primary-color: #10b981;
             /* Emerald 500 */
             --primary-dark: #047857;
@@ -18,6 +19,9 @@
             /* Emerald 900 */
             --border-color: #d1fae5;
             /* Emerald 100 */
+            --accent-color: #34d399;
+            /* Emerald 400 */
+            --danger-color: #ef4444;
         }
 
         body {
@@ -60,11 +64,7 @@
             gap: 2rem;
         }
 
-        .full-width {
-            grid-column: 1 / -1;
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .main-layout {
                 grid-template-columns: 1fr;
             }
@@ -77,7 +77,6 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             padding: 2rem;
             border: 1px solid var(--border-color);
-            height: fit-content;
         }
 
         .tabs {
@@ -140,6 +139,7 @@
             color: var(--primary-dark);
             font-weight: bold;
             cursor: not-allowed;
+            border-color: #bbf7d0;
         }
 
         .submit-btn {
@@ -153,47 +153,16 @@
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-top: 1rem;
         }
 
         .submit-btn:hover {
             background-color: var(--primary-dark);
         }
 
-        /* History Section */
-        .history-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .history-item {
-            background: white;
-            border: 1px solid var(--border-color);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .history-info strong {
-            display: block;
-            color: var(--primary-dark);
-            font-size: 1.1rem;
-        }
-
-        .history-meta {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 0.25rem;
-        }
-
         .print-btn {
             background-color: #3b82f6;
-            /* Blue 500 */
+            /* Blue for print/action buttons inside cards */
             color: white;
             border: none;
             padding: 0.5rem 1rem;
@@ -206,80 +175,76 @@
             text-decoration: none;
         }
 
-        .print-btn:hover {
-            background-color: #2563eb;
-        }
-
-        .delete-btn {
-            background-color: #ef4444;
-            /* Red 500 */
-            color: white;
-            border: none;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            margin-left: 0.5rem;
-        }
-
-        /* Ledger Table Styles */
-        .ledger-table {
+        /* Inventory Table */
+        .inventory-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
-        .ledger-table th,
-        .ledger-table td {
-            padding: 0.75rem;
+        .inventory-table th,
+        .inventory-table td {
             text-align: left;
+            padding: 12px;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .ledger-table th {
+        .inventory-table th {
             background-color: #d1fae5;
+            /* Green 100 */
             color: var(--primary-dark);
-            font-weight: 600;
         }
 
-        .ledger-table tr:hover {
-            background-color: #f9fafb;
+        .inventory-table tr:hover {
+            background-color: #f0fdf4;
         }
 
-        .amount-col {
-            text-align: right;
+        .num-col {
+            text-align: right !important;
             font-family: 'Courier New', Courier, monospace;
             font-weight: 600;
         }
 
-        /* --- PRINT STYLES --- */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-
-            #print-area,
-            #print-area * {
-                visibility: visible;
-            }
-
-            #print-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 20px;
-                background: white;
-                color: black;
-            }
-
-            .no-print {
-                display: none !important;
-            }
+        /* History List */
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
-        /* Modal / Print Area Hidden by default */
+        .history-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .badge-kirim {
+            background-color: #10b981;
+        }
+
+        /* Green */
+        .badge-chiqim {
+            background-color: #f59e0b;
+        }
+
+        /* Amber */
+
+        /* Print Overlay */
         #print-overlay {
             display: none;
             position: fixed;
@@ -295,90 +260,79 @@
 
         #print-area-wrapper {
             background: white;
-            padding: 2rem;
+            padding: 40px;
             width: 210mm;
-            /* A4 width */
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            position: relative;
         }
 
-        /* Report Print Style */
-        .report-header {
-            text-align: center;
-            margin-bottom: 20px;
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #print-area,
+            #print-area * {
+                visibility: visible;
+            }
+
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* Official Form Styles (M-4 & M-11 & Reports) */
+        .m-form {
             font-family: 'Times New Roman', serif;
-        }
-
-        .report-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: 'Times New Roman', serif;
-            font-size: 12px;
-        }
-
-        .report-table th,
-        .report-table td {
-            border: 1px solid black;
-            padding: 5px;
-        }
-
-        /* KO-1 Form Styles (Official Look) */
-        .ko-form {
-            font-family: 'Times New Roman', Times, serif;
+            color: black;
             border: 2px solid black;
             padding: 20px;
-            margin-bottom: 20px;
-            position: relative;
         }
 
-        .ko-header {
+        .m-title {
             text-align: center;
             font-weight: bold;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-
-        .ko-row {
-            display: flex;
-            justify-content: space-between;
+            font-size: 1.2rem;
             margin-bottom: 15px;
         }
 
-        .ko-field {
-            border-bottom: 1px solid black;
-            flex: 1;
-            margin-left: 10px;
-            font-weight: bold;
+        .m-header-table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
         }
 
-        .cut-line {
-            border-top: 1px dashed black;
-            margin: 40px 0;
-            position: relative;
+        .m-header-table td {
+            padding: 5px;
         }
 
-        .cut-line::after {
-            content: "Qirqish chizig'i";
-            position: absolute;
-            top: -10px;
-            right: 0;
-            background: white;
-            font-size: 0.8rem;
-        }
-
-        table.gl-table {
+        .m-data-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
+            margin-bottom: 20px;
         }
 
-        table.gl-table th,
-        table.gl-table td {
+        .m-data-table th,
+        .m-data-table td {
             border: 1px solid black;
             padding: 5px;
             text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .m-footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
         }
     </style>
 </head>
@@ -386,143 +340,158 @@
 <body>
 
     <header class="no-print">
-        <h1>🏛️ Kassa Tizimi (5010) — "FAXR MADAD KONSALT"</h1>
-        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Muallif: Suxrat Abdullaev</p>
+        <h1>🏭 Ombor Tizimi (FIFO) — "FAXR MADAD KONSALT"</h1>
+        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Materiallar hisobi (FIFO usuli) | Muallif: Suxrat Abdullaev</p>
     </header>
 
     <div class="container no-print">
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchView('forms')">📝 Hujjatlar</button>
-            <button class="tab-btn" onclick="switchView('ledger')">📚 Kassa Daftari</button>
-        </div>
-
-        <!-- VIEW: FORMS & HISTORY -->
-        <div id="view-forms" class="main-layout">
-            <!-- Left Side: Forms -->
-            <div>
-                <div class="card">
-                    <div class="tabs" style="margin-bottom: 1rem;">
-                        <button class="tab-btn active" onclick="switchFormTab('kirim')">▼ Kirim (KO-1)</button>
-                        <button class="tab-btn" onclick="switchFormTab('chiqim')">▲ Chiqim (KO-2)</button>
-                    </div>
-
-                    <!-- Kirim Form -->
-                    <form id="kirim-form">
-                        <div class="form-group">
-                            <label>Sana</label>
-                            <input type="date" id="k-date" required>
-                        </div>
-                        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div>
-                                <label>Debet (Kassa)</label>
-                                <input type="text" value="5010" class="readonly-field" readonly>
-                            </div>
-                            <div>
-                                <label>Kredit (Manba)</label>
-                                <select id="k-credit" required>
-                                    <option value="">Tanlang...</option>
-                                    <!-- List filled by JS -->
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Kimdan qabul qilindi</label>
-                            <input type="text" id="k-from" placeholder="F.I.SH" required>
-                        </div>
-                        <div class="form-group">
-                            <label>To'lov maqsadi (Asos)</label>
-                            <input type="text" id="k-basis" placeholder="Masalan: Savdo tushumi" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Summa (so'm)</label>
-                            <input type="number" id="k-amount" placeholder="0.00" min="0.01" step="0.01" required>
-                        </div>
-                        <button type="submit" class="submit-btn" style="background-color: #10b981;">Kirim Orderini
-                            Yaratish</button>
-                    </form>
-
-                    <!-- Chiqim Form -->
-                    <form id="chiqim-form" style="display: none;">
-                        <div class="form-group">
-                            <label>Sana</label>
-                            <input type="date" id="ch-date" required>
-                        </div>
-                        <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div>
-                                <label>Debet (Qayerga)</label>
-                                <select id="ch-debet" required>
-                                    <option value="">Tanlang...</option>
-                                    <!-- List filled by JS -->
-                                </select>
-                            </div>
-                            <div>
-                                <label>Kredit (Kassa)</label>
-                                <input type="text" value="5010" class="readonly-field" readonly>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Kimga berildi</label>
-                            <input type="text" id="ch-to" placeholder="F.I.SH" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Asos (Maqsad)</label>
-                            <input type="text" id="ch-basis" placeholder="Masalan: Ish haqi uchun" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Summa (so'm)</label>
-                            <input type="number" id="ch-amount" placeholder="0.00" min="0.01" step="0.01" required>
-                        </div>
-                        <button type="submit" class="submit-btn" style="background-color: #f59e0b;">Chiqim Orderini
-                            Yaratish</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Right Side: Recent Docs -->
-            <div>
-                <div class="card">
-                    <h2 style="margin-top: 0; color: var(--primary-dark);">📂 Hujjatlar Tarixi</h2>
-                    <ul id="history-list" class="history-list">
-                        <!-- Items will be here -->
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- VIEW: LEDGER (KASSA DAFTARI) -->
-        <div id="view-ledger" class="card" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h2 style="margin: 0; color: var(--primary-dark);">📚 Kassa Daftari (5010)</h2>
+        <!-- OVERVIEW: INVENTORY -->
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h2 style="margin:0; color:var(--primary-dark)">📦 Ombor Qoldig'i (FIFO)</h2>
                 <div style="display:flex; gap:10px;">
-                    <button onclick="exportLedgerToExcel()" class="print-btn" style="background-color: #10b981;">📊
+                    <button onclick="exportToExcel()" class="print-btn" style="background-color: #10b981;">📊
                         Excel</button>
-                    <button onclick="printLedger()" class="print-btn">🖨️ Chop Etish</button>
+                    <button onclick="printInventoryReport()" class="print-btn">🖨️ Chop Etish</button>
                 </div>
             </div>
 
-            <div style="margin-bottom: 1rem;">
-                <input type="text" id="ledger-search" onkeyup="filterLedger()"
-                    placeholder="🔍 Qidiruv (Sana, Summa, Familiya...)"
-                    style="padding: 0.75rem; width: 100%; border: 2px solid var(--border-color); border-radius: 0.5rem;">
+            <div style="margin-bottom: 1rem; position: relative;">
+                <input type="text" id="search-input" onkeyup="filterInventory()"
+                    placeholder="🔍 Material nomini qidiring..."
+                    style="padding-left: 1rem; width: 100%; max-width: 400px; border: 2px solid var(--border-color); border-radius: 2rem;">
             </div>
 
             <div style="overflow-x: auto;">
-                <table class="ledger-table">
+                <table class="inventory-table" id="inventory-table">
                     <thead>
                         <tr>
-                            <th>Sana</th>
-                            <th>Hujjat</th>
-                            <th>Mazmuni</th>
-                            <th class="amount-col">Kirim (Debet)</th>
-                            <th class="amount-col">Chiqim (Kredit)</th>
-                            <th class="amount-col">Qoldiq</th>
+                            <th>Material Nomi</th>
+                            <th>O'lchov birligi</th>
+                            <th class="num-col">Miqdor (Soni)</th>
+                            <th class="num-col">O'rtacha Narx (Hisobiy)</th>
+                            <th class="num-col">Jami Qiymat</th>
                         </tr>
                     </thead>
-                    <tbody id="ledger-body">
-                        <!-- Ledger rows -->
+                    <tbody id="inventory-body">
+                        <!-- JS fills this -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- OPERATIONS & HISTORY -->
+        <div class="main-layout">
+            <!-- Forms -->
+            <div class="card">
+                <div class="tabs" style="margin-bottom: 1rem;">
+                    <button class="tab-btn active" onclick="switchTab('kirim')">▼ Kirim (M-4)</button>
+                    <button class="tab-btn" onclick="switchTab('chiqim')">▲ Chiqim (M-11)</button>
+                </div>
+
+                <!-- Kirim Form (M-4) -->
+                <form id="kirim-form">
+                    <div class="form-group">
+                        <label>Sana</label>
+                        <input type="date" id="k-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Material Nomi (Katalogni tanlang yoki yangi kiriting)</label>
+                        <input type="text" id="k-name" list="materials-list" placeholder="Masalan: Sement" required
+                            autocomplete="off">
+                        <datalist id="materials-list"></datalist>
+                    </div>
+                    <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div>
+                            <label>Miqdor</label>
+                            <input type="number" id="k-qty" placeholder="0" min="0.01" step="0.01" required>
+                        </div>
+                        <div>
+                            <label>Birlik</label>
+                            <select id="k-unit">
+                                <option value="kg">kg</option>
+                                <option value="dona">dona</option>
+                                <option value="litr">litr</option>
+                                <option value="metr">metr</option>
+                                <option value="qop">qop</option>
+                                <option value="tonna">tonna</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Jami Narxi (so'm)</label>
+                        <input type="number" id="k-total-price" placeholder="Umumiy summa" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Yetkazib beruvchi (6010)</label>
+                        <input type="text" id="k-supplier" placeholder="Korxona nomi" required>
+                    </div>
+
+                    <div
+                        style="background:#f0fdf4; padding:10px; border-radius:5px; font-size:0.9rem; margin-bottom:10px; color:#166534; border:1px solid #bbf7d0;">
+                        <strong>Provodka:</strong> Dt 1010 (Materiallar) - Kt 6010 (Mol yetkazib beruvchilar)
+                    </div>
+
+                    <button type="submit" class="submit-btn" style="background-color: #10b981;">Omborga Kirim
+                        Qilish</button>
+                </form>
+
+                <!-- Chiqim Form (M-11) -->
+                <form id="chiqim-form" style="display:none;">
+                    <div class="form-group">
+                        <label>Sana</label>
+                        <input type="date" id="ch-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Materialni Tanlang</label>
+                        <select id="ch-name" required onchange="updateChiqimInfo()">
+                            <option value="">Tanlang...</option>
+                            <!-- Filled by JS -->
+                        </select>
+                    </div>
+                    <div id="stock-info" style="font-size:0.9rem; color:#666; margin-bottom:10px;"></div>
+
+                    <div class="form-group">
+                        <label>Chiqim Miqdori</label>
+                        <input type="number" id="ch-qty" placeholder="0" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Qayerga (2010)</label>
+                        <input type="text" id="ch-target" value="Asosiy Ishlab chiqarish (Sex)" placeholder="Sex nomi"
+                            required>
+                    </div>
+
+                    <div
+                        style="background:#fff7ed; padding:10px; border-radius:5px; font-size:0.9rem; margin-bottom:10px; color:#9a3412; border:1px solid #fed7aa;">
+                        <strong>Provodka:</strong> Dt 2010 (Ishlab chiqarish) - Kt 1010 (Ombor)<br>
+                        <small>Narx "FIFO" usulida hisoblanadi (Birinchi kirgan - birinchi chiqadi).</small>
+                    </div>
+
+                    <button type="submit" class="submit-btn" style="background-color: #f59e0b;">Ishlab Chiqarishga
+                        Berish</button>
+                </form>
+            </div>
+
+            <!-- History -->
+            <div class="card">
+                <h3 style="margin-top:0;">📜 Hujjatlar Tarixi</h3>
+                <ul id="history-list" class="history-list">
+                    <!-- JS fills -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Print Overlay -->
+        <div id="print-overlay" class="no-print">
+            <div id="print-area-wrapper">
+                <div style="text-align: right; margin-bottom: 1rem;">
+                    <button onclick="window.print()" class="submit-btn"
+                        style="width:auto; display:inline-block; margin:0; padding:10px 20px;">🖨️ Chop etish</button>
+                    <button onclick="closePrint()" class="submit-btn"
+                        style="width:auto; display:inline-block; margin:0; background-color:#6b7280; padding:10px 20px;">Yopish</button>
+                </div>
+                <div id="print-area"></div>
             </div>
         </div>
 
@@ -535,438 +504,623 @@
         <div style="font-size: 0.8rem; margin-top: 5px;">&copy; 2025 Barcha huquqlar himoyalangan</div>
     </footer>
 
-    <!-- Print Overlay -->
-    <div id="print-overlay" class="no-print">
-        <div id="print-area-wrapper">
-            <div style="text-align: right; margin-bottom: 1rem;">
-                <button onclick="window.print()" class="print-btn" style="display: inline-block;">🖨️ Chop
-                    etish</button>
-                <button onclick="closePrint()" class="delete-btn" style="background-color: #6b7280;">Yopish</button>
-            </div>
-            <div id="print-area">
-                <!-- Content injected here for print -->
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Configuration
-        const accounts = [
-            '4010', '4210', '4220', '4290', '4310', '4610',
-            '4720', '4730', '5110', '5710', '5910', '6010',
-            '6710', '6310', '9010', '9020', '9030', '9390', '9380'
-        ];
+        // State management
+        // Data Structure:
+        // materials = {
+        //   "Cement": {
+        //      unit: "kg",
+        //      batches: [ {id, date, qty, unitCost, originalQty}, ... ],
+        //      qty: 100, // Total currently
+        //      totalPrice: 50000 // Total Value currently
+        //   }
+        // }
+        let materials = JSON.parse(localStorage.getItem('ombor_materials') || '{}');
+        let history = JSON.parse(localStorage.getItem('ombor_history') || '[]');
 
-        // Initialize
-        window.onload = function () {
-            // Fill Select Options
-            const kCreditSelect = document.getElementById('k-credit');
-            const chDebetSelect = document.getElementById('ch-debet');
-
-            accounts.forEach(acc => {
-                const opt1 = new Option(acc, acc);
-                const opt2 = new Option(acc, acc);
-                kCreditSelect.add(opt1);
-                chDebetSelect.add(opt2);
+        function migrateToFIFO() {
+            let changed = false;
+            Object.keys(materials).forEach(key => {
+                // If old structure (no batches array)
+                if (!materials[key].batches) {
+                    const m = materials[key];
+                    // Create a single initial batch from existing data
+                    const price = m.qty > 0 ? (m.totalPrice / m.qty) : 0;
+                    m.batches = [{
+                        id: 'migrated_' + Date.now() + Math.random(),
+                        date: new Date().toISOString().split('T')[0],
+                        qty: m.qty,
+                        originalQty: m.qty,
+                        unitCost: price
+                    }];
+                    // Ensure totals are clean
+                    m.totalPrice = m.qty * price;
+                    changed = true;
+                }
             });
+            if (changed) saveData();
+        }
 
-            // Set Today's Date
+        window.onload = function () {
+            migrateToFIFO(); // Ensure data structure is correct
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('k-date').value = today;
             document.getElementById('ch-date').value = today;
-
-            // Load History & Ledger
             renderAll();
         };
 
-        // Navigation Logic
-        function switchView(viewName) {
-            if (viewName === 'forms') {
-                document.getElementById('view-forms').style.display = 'grid';
-                document.getElementById('view-ledger').style.display = 'none';
-                document.querySelectorAll('.container > .tabs > .tab-btn')[0].classList.add('active');
-                document.querySelectorAll('.container > .tabs > .tab-btn')[1].classList.remove('active');
-            } else {
-                document.getElementById('view-forms').style.display = 'none';
-                document.getElementById('view-ledger').style.display = 'block';
-                document.querySelectorAll('.container > .tabs > .tab-btn')[0].classList.remove('active');
-                document.querySelectorAll('.container > .tabs > .tab-btn')[1].classList.add('active');
-            }
+        function renderAll() {
+            renderInventory();
+            renderHistory();
+            updateMaterialLists();
         }
 
-        function switchFormTab(tab) {
+        function switchTab(tab) {
             if (tab === 'kirim') {
                 document.getElementById('kirim-form').style.display = 'block';
                 document.getElementById('chiqim-form').style.display = 'none';
-                document.querySelectorAll('.card .tabs .tab-btn')[0].classList.add('active');
-                document.querySelectorAll('.card .tabs .tab-btn')[1].classList.remove('active');
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.querySelectorAll('.tab-btn')[1].classList.remove('active');
             } else {
                 document.getElementById('kirim-form').style.display = 'none';
                 document.getElementById('chiqim-form').style.display = 'block';
-                document.querySelectorAll('.card .tabs .tab-btn')[0].classList.remove('active');
-                document.querySelectorAll('.card .tabs .tab-btn')[1].classList.add('active');
+                document.querySelectorAll('.tab-btn')[0].classList.remove('active');
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                updateChiqimInfo();
             }
         }
 
-        // Handle Kirim Submit
+        // --- KIRIM LOGIC (M-4) ---
         document.getElementById('kirim-form').onsubmit = function (e) {
             e.preventDefault();
-            const data = {
-                type: 'KO-1',
-                id: Date.now(),
-                date: document.getElementById('k-date').value,
-                debet: '5010',
-                kredit: document.getElementById('k-credit').value,
-                person: document.getElementById('k-from').value,
-                basis: document.getElementById('k-basis').value,
-                amount: parseFloat(document.getElementById('k-amount').value)
+
+            const name = document.getElementById('k-name').value.trim();
+            const qty = parseFloat(document.getElementById('k-qty').value);
+            const unit = document.getElementById('k-unit').value;
+            const totalPrice = parseFloat(document.getElementById('k-total-price').value);
+            const supplier = document.getElementById('k-supplier').value;
+            const date = document.getElementById('k-date').value;
+
+            if (!name) return alert('Material nomini kiriting!');
+
+            // Calculate Unit Cost for this specific batch
+            const unitCost = qty > 0 ? (totalPrice / qty) : 0;
+
+            // Initialize if new material
+            if (!materials[name]) {
+                materials[name] = { qty: 0, unit: unit, totalPrice: 0, batches: [] };
+            }
+
+            // Create Batch
+            const batchId = Date.now();
+            const newBatch = {
+                id: batchId,
+                date: date,
+                qty: qty,
+                originalQty: qty,
+                unitCost: unitCost
             };
-            saveOrder(data);
+
+            // Update State
+            materials[name].batches.push(newBatch);
+            materials[name].qty += qty;
+            materials[name].totalPrice += totalPrice;
+            materials[name].unit = unit; // Update unit just in case
+
+            // Save Transaction
+            const record = {
+                id: batchId, // Use batch ID as transaction ID for Kirim
+                type: 'Kirim (M-4)',
+                date: date,
+                name: name,
+                qty: qty,
+                unit: unit,
+                price: totalPrice,
+                party: supplier,
+                debet: '1010',
+                kredit: '6010',
+                batchId: batchId // Link to specific batch
+            };
+
+            history.unshift(record);
+            saveData();
+
             this.reset();
-            document.getElementById('k-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('k-date').value = date;
+            alert("Mahsulot qabul qilindi (FIFO partiyasi yaratildi)");
         };
 
-        // Handle Chiqim Submit
+        // --- CHIQIM LOGIC (M-11) FIFO ---
         document.getElementById('chiqim-form').onsubmit = function (e) {
             e.preventDefault();
-            const data = {
-                type: 'KO-2',
+
+            const name = document.getElementById('ch-name').value;
+            const qtyToRelease = parseFloat(document.getElementById('ch-qty').value);
+            const target = document.getElementById('ch-target').value;
+            const date = document.getElementById('ch-date').value;
+
+            if (!name || !materials[name]) return alert("Material tanlanmagan!");
+
+            const currentStock = materials[name];
+            if (qtyToRelease > currentStock.qty) {
+                return alert(`Omborda yetarli mahsulot yo'q! Mavjud: ${currentStock.qty} ${currentStock.unit}`);
+            }
+
+            // FIFO CALCULATION
+            let remaining = qtyToRelease;
+            let totalCost = 0;
+
+            // We need to modify batches, so let's work on the live array
+            // Since we are committing, we can modify directly.
+            // If validation fails later (unlikely), we might have issues, but here checks are done.
+
+            // Log for audit details (optional)
+            let usedBatchesLog = [];
+
+            let i = 0;
+            while (remaining > 0 && i < currentStock.batches.length) {
+                let batch = currentStock.batches[i];
+
+                if (batch.qty <= 0) {
+                    i++;
+                    continue; // Should not happen usually if we clean up, but good safety
+                }
+
+                let take = 0;
+                if (batch.qty >= remaining) {
+                    // This batch covers the rest
+                    take = remaining;
+                    batch.qty -= take;
+                    // If batch becomes 0, we can remove it or keep it empty. 
+                    // Let's keep it empty for audit? No, usually cleaner to remove or ignore.
+                    // For now, let's keep it but skip in loops if 0.
+                } else {
+                    // Take all from this batch
+                    take = batch.qty;
+                    batch.qty = 0;
+                }
+
+                let cost = take * batch.unitCost;
+                totalCost += cost;
+                remaining -= take;
+
+                usedBatchesLog.push({
+                    date: batch.date,
+                    qty: take,
+                    cost: cost,
+                    unitCost: batch.unitCost
+                });
+
+                if (batch.qty === 0) {
+                    // Clean up empty batches to keep array small? 
+                    // Or keep them for history tracking? 
+                    // Let's remove them to keep performance good over time.
+                    currentStock.batches.splice(i, 1);
+                    // Don't increment i because next item shifted to i
+                } else {
+                    i++;
+                }
+            }
+
+            // Precision correction for total remaining release
+            if (remaining > 0.0001) {
+                // This shouldn't happen due to check above, but purely floating point safety
+                alert("Xatolik: Hisob-kitobda xatolik yuz berdi (Rounding error).");
+                // Restore logic needed? (Complex)
+                return;
+            }
+
+            // Update Totals
+            currentStock.qty -= qtyToRelease;
+            currentStock.totalPrice -= totalCost;
+
+            if (currentStock.qty < 0.0001) {
+                currentStock.qty = 0;
+                currentStock.totalPrice = 0;
+                currentStock.batches = []; // Clear all
+            }
+
+            const record = {
                 id: Date.now(),
-                date: document.getElementById('ch-date').value,
-                debet: document.getElementById('ch-debet').value,
-                kredit: '5010',
-                person: document.getElementById('ch-to').value,
-                basis: document.getElementById('ch-basis').value,
-                amount: parseFloat(document.getElementById('ch-amount').value)
+                type: 'Chiqim (M-11)',
+                date: date,
+                name: name,
+                qty: qtyToRelease,
+                unit: currentStock.unit,
+                price: totalCost, // Total Actual Cost (FIFO)
+                party: target,
+                debet: '2010',
+                kredit: '1010',
+                details: usedBatchesLog // Save which batches were used
             };
-            saveOrder(data);
+
+            history.unshift(record);
+            saveData();
+
             this.reset();
-            document.getElementById('ch-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('ch-date').value = date;
+            document.getElementById('ch-target').value = "Asosiy Ishlab chiqarish (Sex)";
+            updateChiqimInfo();
+            alert(`Chiqim qilindi! Hisoblangan tannarx: ${totalCost.toLocaleString()} so'm`);
         };
 
-        function saveOrder(order) {
-            const history = JSON.parse(localStorage.getItem('kassa_history') || '[]');
-            history.push(order); // Append to end for chronological simplicity in Ledger (resort later if needed)
-            localStorage.setItem('kassa_history', JSON.stringify(history));
+        function saveData() {
+            localStorage.setItem('ombor_materials', JSON.stringify(materials));
+            localStorage.setItem('ombor_history', JSON.stringify(history));
             renderAll();
         }
 
-        function deleteOrder(id) {
-            if (!confirm("Haqiqatan ham o'chirmoqchimisiz?")) return;
-            let history = JSON.parse(localStorage.getItem('kassa_history') || '[]');
-            history = history.filter(item => item.id !== id);
-            localStorage.setItem('kassa_history', JSON.stringify(history));
-            renderAll();
+        function updateMaterialLists() {
+            const datalist = document.getElementById('materials-list');
+            datalist.innerHTML = '';
+            Object.keys(materials).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                datalist.appendChild(opt);
+            });
+
+            const select = document.getElementById('ch-name');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">Tanlang...</option>';
+            Object.keys(materials).forEach(key => {
+                if (materials[key].qty > 0) {
+                    const opt = document.createElement('option');
+                    opt.value = key;
+                    opt.text = key;
+                    select.appendChild(opt);
+                }
+            });
+            select.value = currentVal;
         }
 
-        function renderAll() {
-            renderHistory();
-            renderLedger();
+        function updateChiqimInfo() {
+            const name = document.getElementById('ch-name').value;
+            const infoDiv = document.getElementById('stock-info');
+            if (name && materials[name]) {
+                const m = materials[name];
+                // Show next batch price if available
+                let nextPriceText = "";
+                if (m.batches.length > 0) {
+                    const nextBatch = m.batches[0];
+                    nextPriceText = ` <br> <span style="color:#059669; font-size:0.8rem">Navbatdagi partiya: ${nextBatch.qty.toLocaleString()} ${m.unit} x ${nextBatch.unitCost.toLocaleString()} so'm (${nextBatch.date})</span>`;
+                }
+
+                infoDiv.innerHTML = `Mavjud: <b>${m.qty.toLocaleString()} ${m.unit}</b> | Jami Qiymat: <b>${m.totalPrice.toLocaleString()} so'm</b>${nextPriceText}`;
+            } else {
+                infoDiv.innerHTML = '';
+            }
+        }
+
+        function renderInventory() {
+            const tbody = document.getElementById('inventory-body');
+            tbody.innerHTML = '';
+            let totalValue = 0;
+
+            Object.keys(materials).sort().forEach(name => {
+                const m = materials[name];
+                if (m.qty <= 0 && m.totalPrice <= 0) return;
+
+                const avgPrice = m.qty > 0 ? (m.totalPrice / m.qty) : 0;
+                totalValue += m.totalPrice;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td><b>${name}</b></td>
+                <td>${m.unit}</td>
+                <td class="num-col">${m.qty.toLocaleString()}</td>
+                <td class="num-col" title="Average of remaining batches">${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td class="num-col">${m.totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            `;
+                tbody.appendChild(tr);
+            });
+
+            const totalTr = document.createElement('tr');
+            totalTr.style.background = '#f0fdf4';
+            totalTr.style.fontWeight = 'bold';
+            totalTr.innerHTML = `
+            <td colspan="4" style="text-align:right">JAMI OMBOR QIYMATI:</td>
+            <td class="num-col">${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })} so'm</td>
+        `;
+            tbody.appendChild(totalTr);
         }
 
         function renderHistory() {
             const list = document.getElementById('history-list');
-            const history = JSON.parse(localStorage.getItem('kassa_history') || '[]');
-            // Sort by Newest First for history view
-            const sortedHistory = [...history].sort((a, b) => b.id - a.id);
-
             list.innerHTML = '';
 
-            sortedHistory.forEach(item => {
-                const formattedAmt = item.amount.toLocaleString('uz-UZ', { minimumFractionDigits: 2 });
+            history.forEach(item => {
+                const isKirim = item.type.includes('Kirim');
+                const colorClass = isKirim ? 'badge-kirim' : 'badge-chiqim';
                 const li = document.createElement('li');
                 li.className = 'history-item';
+
+                // Format details for tooltip or display
+                let detailsHtml = '';
+                // if (!isKirim && item.details) {
+                //      detailsHtml = `<div style='font-size:0.75rem; color:#888'>Partiya: ${item.details.map(d => d.date).join(', ')}</div>`;
+                // }
+
                 li.innerHTML = `
-                <div class="history-info">
-                    <strong>${item.type} № ${item.id.toString().slice(-4)}</strong>
-                    <div class="history-meta">
-                        ${item.date} | ${formattedAmt} so'm<br>
-                        ${item.type === 'KO-1' ? 'Debet: 5010' : 'Kredit: 5010'} - ${item.person}
+                <div>
+                    <div>
+                        <span class="badge ${colorClass}">${item.type}</span>
+                        <span style="font-weight:bold; margin-left:5px;">${item.name}</span>
                     </div>
+                    <div style="font-size:0.85rem; color:#666; margin-top:4px;">
+                        ${item.date} | ${item.qty} ${item.unit} | Jami: ${item.price.toLocaleString()} so'm
+                    </div>
+                    ${detailsHtml}
                 </div>
-                <div style="display:flex; align-items:center;">
-                    <button class="print-btn" onclick="openPrint(${item.id})">🖨️</button>
-                    <button class="delete-btn" onclick="deleteOrder(${item.id})">🗑️</button>
+                <div>
+                    <button onclick="openPrint(${item.id})" class="print-btn" style="display:inline-block; padding:5px 10px;">🖨️ Chop etish</button>
+                    ${isKirim ? `<button onclick="deleteKirim(${item.id})" style="border:1px solid #fee2e2; background:#fef2f2; color:red; cursor:pointer; padding:5px 10px; border-radius:4px; margin-left:5px;" title="Oxirgi partiya bo'lsagina o'chirish mumkin">🗑️</button>` : ''}
                 </div>
             `;
                 list.appendChild(li);
             });
         }
 
-        function renderLedger() {
-            const tbody = document.getElementById('ledger-body');
-            const history = JSON.parse(localStorage.getItem('kassa_history') || '[]');
-            // Sort chronologically (Oldest first) for correct balance calculation
-            history.sort((a, b) => {
-                if (a.date !== b.date) return new Date(a.date) - new Date(b.date);
-                return a.id - b.id;
-            });
+        function deleteKirim(id) {
+            // FIFO Deletion Policy: 
+            // Can only delete if the batch is still intact (not used).
+            // Meaning check if materials[name].batches contains a batch with this ID and originalQty == currentQty.
+            // If yes, remove. If no, deny.
 
-            tbody.innerHTML = '';
-            let balance = 0;
+            const index = history.findIndex(x => x.id === id);
+            if (index === -1) return;
+            const item = history[index];
+            if (!item.type.includes('Kirim')) return;
 
-            history.forEach(item => {
-                let kirim = 0;
-                let chiqim = 0;
+            const m = materials[item.name];
+            if (!m) return alert("Material topilmadi");
 
-                if (item.type === 'KO-1') {
-                    kirim = item.amount;
-                    balance += kirim;
-                } else {
-                    chiqim = item.amount;
-                    balance -= chiqim;
-                }
+            const batchIndex = m.batches.findIndex(b => b.id === (item.batchId || item.id));
+            // Note: old history items might not have batchId.
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                <td>${item.date}</td>
-                <td>${item.type} №${item.id.toString().slice(-4)}</td>
-                <td>${item.person}<br><small style="color:#666">${item.basis}</small></td>
-                <td class="amount-col" style="color: green;">${kirim > 0 ? kirim.toLocaleString('uz-UZ', { minimumFractionDigits: 2 }) : '-'}</td>
-                <td class="amount-col" style="color: orange;">${chiqim > 0 ? chiqim.toLocaleString('uz-UZ', { minimumFractionDigits: 2 }) : '-'}</td>
-                <td class="amount-col" style="font-weight: bold;">${balance.toLocaleString('uz-UZ', { minimumFractionDigits: 2 })}</td>
-            `;
-                tbody.appendChild(tr);
-            });
+            if (batchIndex === -1) {
+                return alert("Ushbu partiya topilmadi yoki to'liq ishlatib bo'lingan. O'chirish mumkin emas.");
+            }
+
+            const batch = m.batches[batchIndex];
+            if (batch.qty !== batch.originalQty) {
+                return alert(`Ushbu partiyadan allaqachon foydalanilgan (${batch.originalQty - batch.qty} ${m.unit} ishlatilgan). O'chirish mumkin emas.`);
+            }
+
+            if (!confirm("Kirim partiyasini o'chirasizmi? Ombor qoldig'i kamayadi.")) return;
+
+            // Proceed to delete
+            m.qty -= batch.qty;
+            m.totalPrice -= (batch.qty * batch.unitCost);
+            m.batches.splice(batchIndex, 1);
+
+            if (m.qty < 0) m.qty = 0; // Safety
+
+            history.splice(index, 1);
+            saveData();
         }
 
-        // --- NEW FEATURES ---
-        function filterLedger() {
-            const input = document.getElementById('ledger-search');
+        // --- SEARCH & EXPORT FEATURES ---
+        function filterInventory() {
+            const input = document.getElementById('search-input');
             const filter = input.value.toUpperCase();
-            const tr = document.getElementById('ledger-body').getElementsByTagName('tr');
+            const tr = document.getElementById('inventory-body').getElementsByTagName('tr');
 
             for (let i = 0; i < tr.length; i++) {
-                const textContent = tr[i].textContent || tr[i].innerText;
-                if (textContent.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
+                const td = tr[i].getElementsByTagName("td")[0];
+                if (td) {
+                    const txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        if (!tr[i].innerHTML.includes('JAMI OMBOR')) {
+                            tr[i].style.display = "none";
+                        }
+                    }
                 }
             }
         }
 
-        function exportLedgerToExcel() {
-            const history = JSON.parse(localStorage.getItem('kassa_history') || '[]');
-            // Sort chronologically
-            history.sort((a, b) => {
-                if (a.date !== b.date) return new Date(a.date) - new Date(b.date);
-                return a.id - b.id;
-            });
-
+        function exportToExcel() {
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += "Sana,Hujjat,Mazmuni,Kirim (Debet),Chiqim (Kredit),Qoldiq\n";
+            csvContent += "Material Nomi,O'lchov birligi,Miqdor,O'rtacha Narx (Hisobiy),Jami Qiymat\n";
 
-            let balance = 0;
+            Object.keys(materials).sort().forEach(name => {
+                const m = materials[name];
+                if (m.qty <= 0 && m.totalPrice <= 0) return;
 
-            history.forEach(item => {
-                let kirim = 0;
-                let chiqim = 0;
-                if (item.type === 'KO-1') {
-                    kirim = item.amount;
-                    balance += kirim;
-                } else {
-                    chiqim = item.amount;
-                    balance -= chiqim;
-                }
-
-                // Escape CSV fields
-                const safePerson = `"${(item.person + ' ' + item.basis).replace(/"/g, '""')}"`;
-                const docName = `${item.type} N${item.id.toString().slice(-4)}`;
+                const avgPrice = m.qty > 0 ? (m.totalPrice / m.qty) : 0;
+                const safeName = `"${name.replace(/"/g, '""')}"`;
 
                 const row = [
-                    item.date,
-                    docName,
-                    safePerson,
-                    kirim > 0 ? kirim.toFixed(2) : "",
-                    chiqim > 0 ? chiqim.toFixed(2) : "",
-                    balance.toFixed(2)
+                    safeName,
+                    m.unit,
+                    m.qty.toFixed(2),
+                    avgPrice.toFixed(2),
+                    m.totalPrice.toFixed(2)
                 ].join(",");
                 csvContent += row + "\r\n";
             });
 
+            const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
-            link.setAttribute("href", encodeURI(csvContent));
-            link.setAttribute("download", "kassa_daftari_" + new Date().toISOString().slice(0, 10) + ".csv");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "ombor_fifo_" + new Date().toISOString().slice(0, 10) + ".csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
+        // --- FORM PRINTING ---
         function openPrint(id) {
-            const history = JSON.parse(localStorage.getItem('kassa_history') || '[]');
             const item = history.find(i => i.id === id);
             if (!item) return;
 
             const printArea = document.getElementById('print-area');
-            const formattedAmt = item.amount.toLocaleString('uz-UZ', { minimumFractionDigits: 2 });
 
-            if (item.type === 'KO-1') {
+            if (item.type.includes('Kirim')) {
+                // M-4 FORM
                 printArea.innerHTML = `
-                <div class="ko-form">
-                    <div style="text-align:center; font-weight:bold; font-size:1.1rem; margin-bottom:5px;">"FAXR MADAD KONSALT"</div>
-                    <div class="ko-header">KIRIM KASSA ORDERI № ${item.id.toString().slice(-4)}</div>
-                    <div style="text-align:right; font-size: 0.9rem;">${item.date} yil</div>
-                    
-                    <table class="gl-table">
+                <div class="m-form">
+                    <div class="m-title">KIRIM ORDERI № ${item.id.toString().slice(-6)} <br> (M-4 Shakli)</div>
+                    <table class="m-header-table">
                         <tr>
-                            <th>Korrespondensiyalovchi schyot, subschyot</th>
-                            <th>Jami summa (so'm)</th>
-                            <th>Maqsad kodi</th>
+                            <td><strong>Tashkilot:</strong> "FAXR MADAD KONSALT"</td>
+                            <td style="text-align:right"><strong>Tuzilgan sana:</strong> ${item.date}</td>
                         </tr>
                         <tr>
-                            <td>
-                                Debet: <strong>${item.debet}</strong><br>
-                                Kredit: <strong>${item.kredit}</strong>
-                            </td>
-                            <td>${formattedAmt}</td>
-                            <td></td>
+                            <td><strong>Yetkazib beruvchi:</strong> ${item.party}</td>
+                            <td style="text-align:right"><strong>Ombor:</strong> Asosiy Ombor</td>
                         </tr>
                     </table>
 
-                    <div class="ko-row">Kimdan qabul qilindi: <span class="ko-field">${item.person}</span></div>
-                    <div class="ko-row">Asos: <span class="ko-field">${item.basis}</span></div>
-                    <div class="ko-row">Summa (yozuv bilan): <span class="ko-field">${formattedAmt} so'm</span></div>
-                    <br>
-                    <div class="ko-row">
-                        <span>Bosh hisobchi: _______________</span>
-                        <span>Kassir: _______________</span>
-                    </div>
-                </div>
+                    <table class="m-data-table">
+                        <thead>
+                            <tr>
+                                <th>Material Nomi</th>
+                                <th>O'lchov bir.</th>
+                                <th>Soni</th>
+                                <th>Narxi</th>
+                                <th>Summasi</th>
+                                <th>Schyot (Dt)</th>
+                                <th>Schyot (Kt)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${item.name}</td>
+                                <td>${item.unit}</td>
+                                <td>${item.qty.toLocaleString()}</td>
+                                <td>${(item.price / item.qty).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                                <td>${item.price.toLocaleString()}</td>
+                                <td>${item.debet}</td>
+                                <td>${item.kredit}</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                <div class="cut-line"></div>
-
-                <div class="ko-form">
-                    <div style="text-align:center; font-weight:bold; font-size:1.1rem; margin-bottom:5px;">"FAXR MADAD KONSALT"</div>
-                    <div class="ko-header">KVITANSIYA (KO-1 № ${item.id.toString().slice(-4)} ga)</div>
-                    <div style="text-align: center; margin-bottom: 10px;">${item.date} yil</div>
-                    
-                    <div class="ko-row">Kimdan qabul qilindi: <span class="ko-field">${item.person}</span></div>
-                    <div class="ko-row">Asos: <span class="ko-field">${item.basis}</span></div>
-                    <div class="ko-row">Summa: <span class="ko-field">${formattedAmt} so'm</span></div>
-                    
-                    <br><br>
-                    <div class="ko-row">
-                        <span>Bosh hisobchi: _______________</span>
-                        <span>Kassir: _______________</span>
-                    </div>
-                    <div style="text-align: center; margin-top: 20px; border: 1px solid black; width: 100px; padding: 10px; margin-left: auto; margin-right: auto;">
-                        M.O'.<br>(Shtamp)
+                    <div class="m-footer">
+                        <div>
+                            Qabul qildi (Omborchi): __________________
+                        </div>
+                        <div>
+                            Topshirdi: __________________
+                        </div>
                     </div>
                 </div>
             `;
             } else {
+                // M-11 FORM (Shows Total release cost)
                 printArea.innerHTML = `
-               <div class="ko-form">
-                    <div style="text-align:center; font-weight:bold; font-size:1.1rem; margin-bottom:5px;">"FAXR MADAD KONSALT"</div>
-                    <div class="ko-header">CHIQIM KASSA ORDERI № ${item.id.toString().slice(-4)}</div>
-                    <div style="text-align:right; font-size: 0.9rem;">${item.date} yil</div>
-                    
-                    <table class="gl-table">
+                <div class="m-form">
+                    <div class="m-title">TALABNOMA-YUKXATI № ${item.id.toString().slice(-6)} <br> (M-11 Shakli)</div>
+                    <table class="m-header-table">
                         <tr>
-                            <th>Korrespondensiyalovchi schyot, subschyot</th>
-                            <th>Jami summa (so'm)</th>
-                            <th>Maqsad kodi</th>
+                            <td><strong>Tashkilot:</strong> "FAXR MADAD KONSALT"</td>
+                            <td style="text-align:right"><strong>Sana:</strong> ${item.date}</td>
                         </tr>
                         <tr>
-                            <td>
-                                Debet: <strong>${item.debet}</strong><br>
-                                Kredit: <strong>${item.kredit}</strong>
-                            </td>
-                            <td>${formattedAmt}</td>
-                            <td></td>
+                            <td><strong>Yuboruvchi:</strong> Asosiy Ombor</td>
+                        <tr>
+                            <td><strong>Oluvchi:</strong> ${item.party}</td>
+                            <td style="text-align:right"><strong>Maqsad:</strong> Ishlab chiqarish ehtiyoji uchun</td>
                         </tr>
                     </table>
 
-                    <div class="ko-row">Kimga berildi: <span class="ko-field">${item.person}</span></div>
-                    <div class="ko-row">Asos: <span class="ko-field">${item.basis}</span></div>
-                    <div class="ko-row">Summa: <span class="ko-field">${formattedAmt} so'm</span></div>
-                    
-                    <br><br>
-                    <div class="ko-row">
-                        <span>Rahbar: _______________</span>
-                        <span>Bosh hisobchi: _______________</span>
-                    </div>
-                    <br>
-                    <div class="ko-row">
-                        <span>Oldim: _______________ (Imzo)</span>
-                        <span>Kassir: _______________</span>
+                    <table class="m-data-table">
+                        <thead>
+                            <tr>
+                                <th>Material Nomi</th>
+                                <th>O'lchov bir.</th>
+                                <th>So'raldi</th>
+                                <th>Berildi</th>
+                                <th>Narxi (O'rtacha/FIFO)</th>
+                                <th>Summasi</th>
+                                <th>Schyot (Dt)</th>
+                                <th>Schyot (Kt)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${item.name}</td>
+                                <td>${item.unit}</td>
+                                <td>${item.qty.toLocaleString()}</td>
+                                <td>${item.qty.toLocaleString()}</td>
+                                <td>${(item.price / item.qty).toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                                <td>${item.price.toLocaleString()}</td>
+                                <td>${item.debet}</td>
+                                <td>${item.kredit}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="m-footer">
+                        <div>
+                            Ruxsat berdi: __________________
+                        </div>
+                        <div>
+                            Omborchi: __________________
+                        </div>
+                        <div>
+                            Oldi: __________________
+                        </div>
                     </div>
                 </div>
             `;
             }
-
             document.getElementById('print-overlay').style.display = 'flex';
         }
 
-        function printLedger() {
-            const history = JSON.parse(localStorage.getItem('kassa_history') || '[]');
-            history.sort((a, b) => {
-                if (a.date !== b.date) return new Date(a.date) - new Date(b.date);
-                return a.id - b.id;
-            });
-
+        // --- REPORT PRINTING ---
+        function printInventoryReport() {
+            const printArea = document.getElementById('print-area');
             let rows = '';
-            let balance = 0;
-            let totalIn = 0;
-            let totalOut = 0;
+            let totalValue = 0;
 
-            history.forEach(item => {
-                let kirim = 0;
-                let chiqim = 0;
-                if (item.type === 'KO-1') {
-                    kirim = item.amount;
-                    totalIn += kirim;
-                    balance += kirim;
-                } else {
-                    chiqim = item.amount;
-                    totalOut += chiqim;
-                    balance -= chiqim;
-                }
+            const sortedKeys = Object.keys(materials).sort();
+
+            sortedKeys.forEach(name => {
+                const m = materials[name];
+                if (m.qty <= 0 && m.totalPrice <= 0) return;
+
+                const avg = m.qty > 0 ? m.totalPrice / m.qty : 0;
+                totalValue += m.totalPrice;
 
                 rows += `
                 <tr>
-                    <td>${item.date}</td>
-                    <td>${item.type} №${item.id.toString().slice(-4)}</td>
-                    <td>${item.person}<br>(${item.basis})</td>
-                    <td align="right">${kirim ? kirim.toLocaleString('uz-UZ', { minimumFractionDigits: 2 }) : '-'}</td>
-                    <td align="right">${chiqim ? chiqim.toLocaleString('uz-UZ', { minimumFractionDigits: 2 }) : '-'}</td>
-                    <td align="right"><b>${balance.toLocaleString('uz-UZ', { minimumFractionDigits: 2 })}</b></td>
+                    <td>${name}</td>
+                    <td style="text-align:center">${m.unit}</td>
+                    <td style="text-align:right">${m.qty.toLocaleString()}</td>
+                    <td style="text-align:right">${avg.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td style="text-align:right">${m.totalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 </tr>
             `;
             });
 
-            const printArea = document.getElementById('print-area');
             printArea.innerHTML = `
-            <div class="report-header">
-                <h2>KASSA DAFTARI (5010)</h2>
-                <p>Jami aylama va qoldiq hisoboti</p>
-            </div>
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th style="width: 15%">Sana</th>
-                        <th style="width: 15%">Hujjat</th>
-                        <th style="width: 30%">Mazmuni</th>
-                        <th style="width: 13%">Kirim</th>
-                        <th style="width: 13%">Chiqim</th>
-                        <th style="width: 14%">Qoldiq</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rows}
-                    <tr style="background: #eee; font-weight: bold;">
-                        <td colspan="3" align="right">JAMI AYLAMALAR:</td>
-                        <td align="right">${totalIn.toLocaleString('uz-UZ', { minimumFractionDigits: 2 })}</td>
-                        <td align="right">${totalOut.toLocaleString('uz-UZ', { minimumFractionDigits: 2 })}</td>
-                        <td align="right">${balance.toLocaleString('uz-UZ', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <br>
-            <div style="display: flex; justify-content: space-between; font-family: 'Times New Roman'; padding: 20px 0;">
-                <div>Kassir: _________________</div>
-                <div>Bosh hisobchi: _________________</div>
+            <div class="m-form">
+                <div class="m-title">MATERIAL QOLDIQLARI HISOBOTI (1010)<br><small>${new Date().toLocaleDateString()}</small></div>
+                <table class="m-data-table">
+                    <thead>
+                        <tr>
+                            <th>Material Nomi</th>
+                            <th>Birlik</th>
+                            <th>Miqdor</th>
+                            <th>O'rtacha Narx (FIFO)</th>
+                            <th>Jami Qiymat (so'm)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                        <tr style="font-weight:bold; background:#eee;">
+                            <td colspan="4" style="text-align:right">JAMI:</td>
+                            <td style="text-align:right">${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="m-footer">
+                    <div>Omborchi: __________________</div>
+                    <div>Bosh hisobchi: __________________</div>
+                </div>
             </div>
         `;
             document.getElementById('print-overlay').style.display = 'flex';
@@ -975,6 +1129,7 @@
         function closePrint() {
             document.getElementById('print-overlay').style.display = 'none';
         }
+
     </script>
 
 </body>
