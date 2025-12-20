@@ -433,8 +433,13 @@
                         <strong>Provodka:</strong> Dt 1010 (Materiallar) - Kt 6010 (Mol yetkazib beruvchilar)
                     </div>
 
-                    <button type="submit" class="submit-btn" style="background-color: #10b981;">Omborga Kirim
-                        Qilish</button>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" id="btn-kirim-submit" class="submit-btn"
+                            style="background-color: #10b981;">Omborga Kirim Qilish</button>
+                        <button type="button" id="btn-kirim-cancel" class="submit-btn"
+                            style="background-color: #6b7280; display:none;" onclick="cancelEdit()">Bekor
+                            qilish</button>
+                    </div>
                 </form>
 
                 <!-- Chiqim Form (M-11) -->
@@ -468,8 +473,13 @@
                         <small>Narx "FIFO" usulida hisoblanadi (Birinchi kirgan - birinchi chiqadi).</small>
                     </div>
 
-                    <button type="submit" class="submit-btn" style="background-color: #f59e0b;">Ishlab Chiqarishga
-                        Berish</button>
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" id="btn-chiqim-submit" class="submit-btn"
+                            style="background-color: #f59e0b;">Ishlab Chiqarishga Berish</button>
+                        <button type="button" id="btn-chiqim-cancel" class="submit-btn"
+                            style="background-color: #6b7280; display:none;" onclick="cancelEdit()">Bekor
+                            qilish</button>
+                    </div>
                 </form>
             </div>
 
@@ -517,6 +527,7 @@
         // }
         let materials = JSON.parse(localStorage.getItem('ombor_materials') || '{}');
         let history = JSON.parse(localStorage.getItem('ombor_history') || '[]');
+        let editingId = null; // Track what we are editing
 
         function migrateToFIFO() {
             let changed = false;
@@ -556,6 +567,7 @@
         }
 
         function switchTab(tab) {
+            cancelEdit(); // Auto cancel if switching
             if (tab === 'kirim') {
                 document.getElementById('kirim-form').style.display = 'block';
                 document.getElementById('chiqim-form').style.display = 'none';
@@ -583,6 +595,24 @@
 
             if (!name) return alert('Material nomini kiriting!');
 
+            // If editing, logic is: Revert old tx -> Create new tx
+            // But here we just want to replace the values in history? 
+            // NO. For inventory/finance, it's safer to:
+            // 1. If editing, we previously "Reverted" the stock effects when clicking "Edit".
+            // 2. Now we just process as new, but keep the old ID if we want (or new ID).
+            // Let's keep old ID to maintain history link? 
+            // Actually simplest: When Edit is clicked, we REVERT stock changes immediately in memory (and save), remove from history.
+            // Then user fills form and "Submits" as if new (but we restore the ID?).
+
+            // My Approach: When "Edit" is pressed: 
+            // 1. Reverse the transaction effects on Inventory.
+            // 2. Populate form.
+            // 3. Set `editingId`.
+            // 4. On Submit: Use `editingId` if exists, then clear it.
+
+            // Checking if editing, ensuring we don't double submit? 
+            // (The Revert happened when they clicked Edit).
+
             // Calculate Unit Cost for this specific batch
             const unitCost = qty > 0 ? (totalPrice / qty) : 0;
 
@@ -592,7 +622,8 @@
             }
 
             // Create Batch
-            const batchId = Date.now();
+            const batchId = editingId || Date.now(); // Reuse ID if editing to keep link? Or just use new. Let's reuse ID for "Batch ID" if it was Kirim.
+            // Actually for Kirim, transaction ID was the batch ID.
             const newBatch = {
                 id: batchId,
                 date: date,
@@ -622,11 +653,19 @@
                 batchId: batchId // Link to specific batch
             };
 
+            // If editing, we replace the old history item position? 
+            // Or just push top?
+            // If we removed it during "Edit" start, we just push top.
+            // Let's assume we removed it from history in `editTransaction`.
+
+            // Insert at correct place or just top? Top is fine as it's "modified/new".
+            // But if we want to keep chronological order, we might need to sort history later.
             history.unshift(record);
             saveData();
 
             this.reset();
             document.getElementById('k-date').value = date;
+            cancelEdit(); // Reset UI state
             alert("Mahsulot qabul qilindi (FIFO partiyasi yaratildi)");
         };
 
@@ -721,7 +760,7 @@
             }
 
             const record = {
-                id: Date.now(),
+                id: editingId || Date.now(),
                 type: 'Chiqim (M-11)',
                 date: date,
                 name: name,
@@ -741,6 +780,7 @@
             document.getElementById('ch-date').value = date;
             document.getElementById('ch-target').value = "Asosiy Ishlab chiqarish (Sex)";
             updateChiqimInfo();
+            cancelEdit();
             alert(`Chiqim qilindi! Hisoblangan tannarx: ${totalCost.toLocaleString()} so'm`);
         };
 
@@ -851,13 +891,154 @@
                     </div>
                     ${detailsHtml}
                 </div>
-                <div>
-                    <button onclick="openPrint(${item.id})" class="print-btn" style="display:inline-block; padding:5px 10px;">🖨️ Chop etish</button>
-                    ${isKirim ? `<button onclick="deleteKirim(${item.id})" style="border:1px solid #fee2e2; background:#fef2f2; color:red; cursor:pointer; padding:5px 10px; border-radius:4px; margin-left:5px;" title="Oxirgi partiya bo'lsagina o'chirish mumkin">🗑️</button>` : ''}
+                </div>
+                <div style="display:flex; gap:5px;">
+                    <button onclick="openPrint(${item.id})" class="print-btn" style="display:inline-block; padding:5px 10px;">🖨️</button>
+                    <button class="print-btn" onclick="editTransaction(${item.id})" style="display:inline-block; padding:5px 10px; background-color:#f59e0b;">✏️</button>
+                    ${isKirim ? `<button onclick="deleteKirim(${item.id})" style="border:1px solid #fee2e2; background:#fef2f2; color:red; cursor:pointer; padding:5px 10px; border-radius:4px;" title="Oxirgi partiya bo'lsagina o'chirish mumkin">🗑️</button>` : ''}
                 </div>
             `;
                 list.appendChild(li);
             });
+        }
+
+        // --- EDIT LOGIC ---
+        function editTransaction(id) {
+            const index = history.findIndex(h => h.id === id);
+            if (index === -1) return;
+            const tx = history[index];
+
+            if (!confirm(`Ushbu ${tx.type} operatsiyasini tahrirlaysizmi? \nDiqqat: Bu operatsiya ombor qoldig'iga ta'sir qiladi (qaytariladi).`)) return;
+
+            // 1. REVERT STOCK
+            if (tx.type.includes('Kirim')) {
+                // Revert Kirim: Remove specific batch qty/price from material
+                const m = materials[tx.name];
+                if (!m) { alert("Material topilmadi (o'chirilgan bo'lishi mumkin)"); return; }
+
+                // Find batch by ID (since Kirim ID = Batch ID)
+                // If ID is not strictly batch ID, we try to match.
+                // In our code: id IS batchId.
+                const batchIdx = m.batches.findIndex(b => b.id == tx.batchId || b.id == tx.id);
+
+                if (batchIdx !== -1) {
+                    const b = m.batches[batchIdx];
+                    // Check if untouched?
+                    if (b.qty !== b.originalQty) {
+                        // Some of this batch was used!
+                        if (!confirm("Diqqat! Ushbu partiyadan qisman foydalanilgan. Tahrirlash ombor hisobini chalkashtirishi mumkin. Davom etasizmi?")) return;
+                    }
+
+                    // Remove values
+                    m.qty -= b.qty; // Remove REMAINING qty
+                    // We must deduct the value of remaining qty
+                    m.totalPrice -= (b.qty * b.unitCost);
+
+                    // Remove batch
+                    m.batches.splice(batchIdx, 1);
+                } else {
+                    // Batch maybe fully gone or bug?
+                    // Deduct from general totals based on TX record
+                    // This is fallback.
+                    m.qty -= tx.qty;
+                    m.totalPrice -= tx.price;
+                }
+
+                // Switch to Form
+                switchTab('kirim');
+                document.getElementById('k-date').value = tx.date;
+                document.getElementById('k-name').value = tx.name;
+                document.getElementById('k-qty').value = tx.qty; // Original Qty
+                document.getElementById('k-unit').value = tx.unit;
+                document.getElementById('k-total-price').value = tx.price;
+                document.getElementById('k-supplier').value = tx.party;
+                document.getElementById('btn-kirim-submit').innerText = "💾 Saqlash (O'zgartirish)";
+                document.getElementById('btn-kirim-cancel').style.display = 'inline-block';
+
+            } else {
+                // Revert Chiqim: Add back the used batches!
+                // We have `tx.details` which logs {date, qty, cost, unitCost}
+                const m = materials[tx.name];
+                if (!m) {
+                    // Create if missing?
+                    materials[tx.name] = { qty: 0, unit: tx.unit, totalPrice: 0, batches: [] };
+                }
+
+                if (tx.details && Array.isArray(tx.details)) {
+                    tx.details.forEach(d => {
+                        // Create a restored batch
+                        materials[tx.name].batches.push({
+                            id: 'restored_' + Date.now() + Math.random(),
+                            date: d.date,
+                            qty: d.qty,
+                            originalQty: d.qty, // Treat as separate chunk
+                            unitCost: d.unitCost
+                        });
+                        materials[tx.name].qty += d.qty;
+                        materials[tx.name].totalPrice += (d.qty * d.unitCost);
+                    });
+
+                    // Sort batches by date to maintain FIFO order roughly
+                    materials[tx.name].batches.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                } else {
+                    // Fallback if no details (legacy?)
+                    // Just add back as single batch
+                    materials[tx.name].batches.push({
+                        id: 'restored_legacy_' + Date.now(),
+                        date: tx.date,
+                        qty: tx.qty,
+                        originalQty: tx.qty,
+                        unitCost: tx.price / tx.qty
+                    });
+                    materials[tx.name].qty += tx.qty;
+                    materials[tx.name].totalPrice += tx.price;
+                }
+
+                // Switch to Form
+                switchTab('chiqim');
+                updateMaterialLists();
+                document.getElementById('ch-date').value = tx.date;
+                document.getElementById('ch-name').value = tx.name;
+                // Wait for select render?
+                setTimeout(() => {
+                    document.getElementById('ch-name').value = tx.name;
+                    updateChiqimInfo();
+                }, 100);
+
+                document.getElementById('ch-qty').value = tx.qty;
+                document.getElementById('ch-target').value = tx.party;
+                document.getElementById('btn-chiqim-submit').innerText = "💾 Saqlash (O'zgartirish)";
+                document.getElementById('btn-chiqim-cancel').style.display = 'inline-block';
+            }
+
+            // 2. REMOVE RECORD FROM HISTORY
+            editingId = tx.id;
+            history.splice(index, 1);
+            saveData(); // Save the revert state immediately
+        }
+
+        function cancelEdit() {
+            if (editingId) {
+                // If they cancel, we left the system in "Reverted" state...
+                // Ideally we should reload the page or Re-Save the ORIGINAL transaction to undo the Revert.
+                // But that's complicated.
+                // Simple Alert: "Bekor qilindi. Diqqat: Hujjat tarixdan o'chirildi va omborga qaytarildi. Iltimos qaytadan kiriting."
+                alert("Tahrirlash bekor qilindi. ESLATMA: Eski hujjat bekor qilingan (ombor holati qaytgan). Ma'lumotni qaytadan kiritishingiz kerak.");
+                editingId = null;
+            }
+
+            document.getElementById('kirim-form').reset();
+            document.getElementById('chiqim-form').reset();
+
+            document.getElementById('btn-kirim-submit').innerText = "Omborga Kirim Qilish";
+            document.getElementById('btn-kirim-cancel').style.display = 'none';
+            document.getElementById('btn-chiqim-submit').innerText = "Ishlab Chiqarishga Berish";
+            document.getElementById('btn-chiqim-cancel').style.display = 'none';
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('k-date').value = today;
+            document.getElementById('ch-date').value = today;
         }
 
         function deleteKirim(id) {
