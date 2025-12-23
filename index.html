@@ -334,10 +334,93 @@
             display: flex;
             justify-content: space-between;
         }
+
+        /* LOGIN MODAL & USER INFO */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+
+        .modal button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- LOGIN MODAL -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal">
+            <h2>🔐 Omborga Kirish</h2>
+            <p style="margin-bottom: 1rem; color: #6b7280;">Talaba ma'lumotlarini kiriting:</p>
+            <input type="text" id="username-input" placeholder="F.I.Sh (Masalan: Aliyev Vali)" autofocus>
+            <input type="text" id="group-input" placeholder="Guruh (Masalan: 304-guruh)">
+            <button onclick="loginUser()">Boshlash</button>
+        </div>
+    </div>
+
+    <!-- USER DISPLAY -->
+    <div class="user-info no-print" id="user-display" style="cursor: default;">
+        <span id="current-user-info">...</span> <span style="cursor:pointer; margin-left:10px; color:red;"
+            onclick="logout()" title="Chiqish">❌</span>
+    </div>
 
     <header class="no-print">
         <h1>🏭 Ombor Tizimi (FIFO) — "FAXR MADAD KONSALT"</h1>
@@ -351,6 +434,10 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                 <h2 style="margin:0; color:var(--primary-dark)">📦 Ombor Qoldig'i (FIFO)</h2>
                 <div style="display:flex; gap:10px;">
+                    <button onclick="openQuiz()" class="btn"
+                        style="background:#8b5cf6; color:white; border:none; box-shadow:0 4px 15px rgba(139, 92, 246, 0.4); display:flex; align-items:center; gap:5px; font-size:0.9rem;">
+                        🧠 Bilimni Sinash
+                    </button>
                     <button onclick="exportToExcel()" class="print-btn" style="background-color: #10b981;">📊
                         Excel</button>
                     <button onclick="printInventoryReport()" class="print-btn">🖨️ Chop Etish</button>
@@ -516,18 +603,65 @@
 
     <script>
         // State management
-        // Data Structure:
-        // materials = {
-        //   "Cement": {
-        //      unit: "kg",
-        //      batches: [ {id, date, qty, unitCost, originalQty}, ... ],
-        //      qty: 100, // Total currently
-        //      totalPrice: 50000 // Total Value currently
-        //   }
-        // }
-        let materials = JSON.parse(localStorage.getItem('ombor_materials') || '{}');
-        let history = JSON.parse(localStorage.getItem('ombor_history') || '[]');
-        let editingId = null; // Track what we are editing
+        let currentUser = null;
+        let materials = {};
+        let history = [];
+        let editingId = null;
+
+        // --- LOGIN SYSTEM ---
+        function checkLogin() {
+            const storedUser = sessionStorage.getItem('ombor_fifo_user');
+            const storedGroup = sessionStorage.getItem('ombor_fifo_group');
+            if (storedUser && storedGroup) {
+                currentUser = storedUser;
+                document.getElementById('login-modal').style.display = 'none';
+                document.getElementById('user-display').style.display = 'block';
+                updateDisplay(storedUser, storedGroup);
+                loadData();
+            } else {
+                document.getElementById('login-modal').style.display = 'flex';
+            }
+        }
+
+        function loginUser() {
+            const name = document.getElementById('username-input').value.trim();
+            const group = document.getElementById('group-input').value.trim();
+
+            if (name && group) {
+                currentUser = name;
+                sessionStorage.setItem('ombor_fifo_user', name);
+                sessionStorage.setItem('ombor_fifo_group', group);
+                document.getElementById('login-modal').style.display = 'none';
+                document.getElementById('user-display').style.display = 'block';
+                updateDisplay(name, group);
+                loadData();
+            } else {
+                alert("Iltimos, F.I.Sh va Guruhni kiriting!");
+            }
+        }
+
+        function updateDisplay(name, group) {
+            document.getElementById('current-user-info').innerHTML = `👤 Talaba: <b>${name}</b> | Guruh: <b>${group}</b>`;
+        }
+
+        function logout() {
+            if (confirm("Tizimdan chiqmoqchimisiz?")) {
+                sessionStorage.removeItem('ombor_fifo_user');
+                sessionStorage.removeItem('ombor_fifo_group');
+                location.reload();
+            }
+        }
+
+        function loadData() {
+            if (!currentUser) return;
+            materials = JSON.parse(localStorage.getItem('ombor_materials_' + currentUser) || '{}');
+            history = JSON.parse(localStorage.getItem('ombor_history_' + currentUser) || '[]');
+            migrateToFIFO();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('k-date').value = today;
+            document.getElementById('ch-date').value = today;
+            renderAll();
+        }
 
         function migrateToFIFO() {
             let changed = false;
@@ -553,11 +687,7 @@
         }
 
         window.onload = function () {
-            migrateToFIFO(); // Ensure data structure is correct
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('k-date').value = today;
-            document.getElementById('ch-date').value = today;
-            renderAll();
+            checkLogin();
         };
 
         function renderAll() {
@@ -785,8 +915,9 @@
         };
 
         function saveData() {
-            localStorage.setItem('ombor_materials', JSON.stringify(materials));
-            localStorage.setItem('ombor_history', JSON.stringify(history));
+            if (!currentUser) return;
+            localStorage.setItem('ombor_materials_' + currentUser, JSON.stringify(materials));
+            localStorage.setItem('ombor_history_' + currentUser, JSON.stringify(history));
             renderAll();
         }
 
@@ -1313,6 +1444,114 @@
 
     </script>
 
+    <script>
+        // --- QUIZ LOGIC (MINI-TRENAJYOR) ---
+        const quizQuestions = [
+            { q: "Yetkazib beruvchidan omborga material kelib tushdi (2,000,000 so'm)", dt: "1010", kt: "6010", sum: 2000000 },
+            { q: "Ombordan ishlab chiqarishga material berildi (1,500,000 so'm)", dt: "2010", kt: "1010", sum: 1500000 },
+            { q: "Ombordan ma'muriyat ehtiyoji uchun inventar berildi (200,000 so'm)", dt: "9420", kt: "1080", sum: 200000 },
+            { q: "Tekshiruv natijasida ombor mudirisida kamomat aniqlandi (100,000 so'm)", dt: "4730", kt: "1010", sum: 100000 },
+            { q: "Ta'sischidan ustav kapitaliga material tushdi (5,000,000 so'm)", dt: "1010", kt: "4610", sum: 5000000 },
+            { q: "Chetga material sotildi (6,000,000 so'm)", dt: "9210", kt: "1010", sum: 6000000 },
+            { q: "Omborda ortiqcha mahsulot (Kirim) aniqlandi (50,000 so'm)", dt: "1010", kt: "9390", sum: 50000 },
+            { q: "Yoqilg'i omboridan avtomobilga benzin quyildi (400,000 so'm)", dt: "9420", kt: "1030", sum: 400000 },
+            { q: "Xizmat ko'rsatuvchi xo'jalikka material berildi (300,000 so'm)", dt: "2310", kt: "1010", sum: 300000 },
+            { q: "Omborga materiallarni yetkazib berish xarajati qo'shildi (100,000 so'm)", dt: "1010", kt: "6010", sum: 100000 }
+        ];
+
+        let currentQIndex = 0;
+
+        function openQuiz() {
+            currentQIndex = 0;
+            document.getElementById('quiz-modal').style.display = 'flex';
+            loadQuestion();
+        }
+
+        function closeQuiz() {
+            document.getElementById('quiz-modal').style.display = 'none';
+        }
+
+        function loadQuestion() {
+            if (currentQIndex >= quizQuestions.length) {
+                document.getElementById('quiz-content').innerHTML = `
+                    <div style="text-align:center; padding:20px;">
+                        <h2 style="color:#10b981;">🎉 Tabriklaymiz!</h2>
+                        <p>Siz barcha savollarni muvaffaqiyatli yakunladingiz.</p>
+                        <button onclick="closeQuiz()" class="btn submit-btn">Yopish</button>
+                        <button onclick="openQuiz()" class="btn submit-btn" style="background:#6b7280; margin-top:10px;">Qayta ishlash</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const q = quizQuestions[currentQIndex];
+            document.getElementById('q-text').innerText = `${currentQIndex + 1}-Savol: ${q.q}`;
+            document.getElementById('q-dt').value = '';
+            document.getElementById('q-kt').value = '';
+            document.getElementById('q-sum').value = '';
+            document.getElementById('q-feedback').innerText = '';
+            document.getElementById('q-feedback').style.display = 'none';
+        }
+
+        function checkAnswer() {
+            const dt = document.getElementById('q-dt').value.trim();
+            const kt = document.getElementById('q-kt').value.trim();
+            const sum = parseFloat(document.getElementById('q-sum').value) || 0;
+
+            const target = quizQuestions[currentQIndex];
+            const feedback = document.getElementById('q-feedback');
+
+            if (dt === target.dt && kt === target.kt && sum === target.sum) {
+                feedback.innerHTML = '<span style="color:green; font-weight:bold;">✅ Javob to\'g\'ri!</span>';
+                feedback.style.display = 'block';
+                setTimeout(() => {
+                    currentQIndex++;
+                    loadQuestion();
+                }, 1000);
+            } else {
+                feedback.innerHTML = `<span style="color:red; font-weight:bold;">❌ Xato!</span><br>To'g'ri javob: Dt ${target.dt}, Kt ${target.kt}, Summa: ${target.sum.toLocaleString()}`;
+                feedback.style.display = 'block';
+            }
+        }
+    </script>
+
+    <!-- QUIZ MODAL -->
+    <div class="modal-overlay" id="quiz-modal" style="display:none; z-index:9999;">
+        <div class="modal" style="max-width:500px; text-align:left;" id="quiz-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="margin:0; color:#8b5cf6;">🧠 Bilimni Sinash</h2>
+                <button onclick="closeQuiz()"
+                    style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+
+            <div style="background:#f3f4f6; padding:15px; border-radius:8px; margin-bottom:20px; font-weight:bold; color:#1f2937;"
+                id="q-text">
+                Savol yuklanmoqda...
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div>
+                    <label style="font-size:0.8rem; font-weight:bold;">Debet (Schyot)</label>
+                    <input type="text" id="q-dt" placeholder="Mas: 1010">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem; font-weight:bold;">Kredit (Schyot)</label>
+                    <input type="text" id="q-kt" placeholder="Mas: 6010">
+                </div>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="font-size:0.8rem; font-weight:bold;">Summa</label>
+                <input type="number" id="q-sum" placeholder="So'mda kiriting">
+            </div>
+
+            <div id="q-feedback"
+                style="margin-bottom:15px; padding:10px; background:#fff; border:1px solid #ccc; border-radius:6px; display:none;">
+            </div>
+
+            <button onclick="checkAnswer()" class="btn submit-btn"
+                style="width:100%; background:#8b5cf6; color:white;">Tekshirish</button>
+        </div>
+    </div>
 </body>
 
 </html>
